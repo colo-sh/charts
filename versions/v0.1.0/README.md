@@ -61,7 +61,7 @@ Feature-gate controls some influential features in Colo:
 
 | Name                      | Description                                                       | Default | Effect (if closed)                     |
 | ------------------------- | ----------------------------------------------------------------  | ------- | -------------------------------------- |
-| `PodMutatingWebhook`      | Whether to open a mutating webhook for Pod **create**             | `true`  | Don't inject Colo.sh/qosClass, Colo.sh/priority and don't replace Colo extend resources ad so on |
+| `PodMutatingWebhook`      | Whether to open a mutating webhook for Pod **create**             | `true`  | Don't inject colo.sh/qosClass, Colo.sh/priority and don't replace Colo extend resources ad so on |
 | `PodValidatingWebhook`    | Whether to open a validating webhook for Pod **create/update**    | `true`  | It is possible to create some Pods that do not conform to the Colo specification, causing some unpredictable problems |
 
 
@@ -78,5 +78,5 @@ If you want to enable all feature-gates, set the parameter as `featureGates=AllA
 If you are in China and have problem to pull image from official DockerHub, you can use the registry hosted on Ksyun Cloud:
 
 ```bash
-$ helm install Colo https://... --set imageRepositoryHost=zhihuhub-kce.in.zhihu.com
+$ helm install Colo https://... --set imageRepositoryHost=hub.kce.ksyun.com
 ```

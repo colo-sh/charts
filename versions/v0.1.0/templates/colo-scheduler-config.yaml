@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: colo-scheduler-config
+  namespace: {{ .Values.installation.namespace }}
+data:
+  colo-scheduler-config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1beta1
+    kind: KubeSchedulerConfiguration
+    leaderElection:
+      leaderElect: false
+    profiles:
+      - schedulerName: colo-scheduler
+        plugins:
+          filter:
+            enabled:
+            - name: Colocation
+          score:
+            disabled:
+            - name: '*'
+            enabled:
+            - name: Colocation
+              weight: 1
+          queueSort:
+            disabled:
+            - name: '*'
+            enabled:
+            - name: Colocation

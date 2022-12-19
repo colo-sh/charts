@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    name: cololet
+    runtimeproxy.colo.com/skip-hookserver: "true"
+  name: cololet
+  namespace: {{ .Values.installation.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: cololet
+  template:
+    metadata:
+      labels:
+        app: cololet
+        runtimeproxy.colo.com/skip-hookserver: "true"
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ''
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccount: cololet
+      nodeSelector:
+        node-role.kubernetes.io/hybrid: ""
+      containers:
+        - command:
+            - cololet
+          args:
+            - --runtime-hooks-network=unix
+            - --runtime-hooks-addr=/var/run/cololet/cololet.sock
+            - --kubelet-insecure-tls=true
+            - --feature-gates=BEMemoryEvict=true,BECPUEvict=true,BECPUSuppress=true
+            - --runtime-hooks=GroupIdentity=true,CPUSetAllocator=true
+            - --v={{ .Values.cololet.log.level }}
+          {{- if .Values.imageRepositoryHost }}
+          image: {{ .Values.imageRepositoryHost }}/{{ .Values.cololet.image.repository }}:{{ .Values.cololet.image.tag }}
+          {{- else }}
+          image: {{ .Values.cololet.image.repository }}:{{ .Values.cololet.image.tag }}
+          {{- end}}
+          name: cololet
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
+          resources:
+            {{- toYaml .Values.cololet.resources | nindent 12 }}
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: /var/run/docker.sock
+              name: docker-run
+            - mountPath: /var/run
+              name: var-run-volume
+            - mountPath: /sys/fs/cgroup
+              name: sys-cgroup
+            - mountPath: /sys
+              name: sys-volume
+            - mountPath: /lib/modules
+              name: lib-modules
+            - mountPath: /usr/src
+              name: kernel-debug
+            - mountPath: /etc/localtime
+              name: host-time
+              readOnly: true
+            - mountPath: /etc/hostname
+              name: host-hostname
+            - mountPath: /proc
+              name: host-proc
+      volumes:
+        - hostPath:
+            path: /var/run
+            type: ""
+          name: var-run-volume
+        - hostPath:
+            path: /sys
+            type: ""
+          name: sys-volume
+        - hostPath:
+            path: /sys/fs/cgroup
+            type: ""
+          name: sys-cgroup
+        - hostPath:
+            path: /lib/modules
+            type: ""
+          name: lib-modules
+        - hostPath:
+            path: /usr/src
+            type: ""
+          name: kernel-debug
+        - hostPath:
+            path: /etc/localtime
+            type: ""
+          name: host-time
+        - hostPath:
+            path: /var/run/docker.sock
+            type: ""
+          name: docker-run
+        - hostPath:
+            path: /proc
+            type: ""
+          name: host-proc
+        - hostPath:
+            path: /etc/hostname
+            type: ""
+          name: host-hostname

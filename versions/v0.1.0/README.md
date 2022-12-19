@@ -75,7 +75,7 @@ If you want to enable all feature-gates, set the parameter as `featureGates=AllA
 
 ### Optional: the local image for China
 
-If you are in China and have problem to pull image from official DockerHub, you can use the registry hosted on Ksyun Cloud:
+If you are in China and have problem to pull image from official DockerHub, you can use the registry hosted on Kingsoft Cloud:
 
 ```bash
 $ helm install Colo https://... --set imageRepositoryHost=hub.kce.ksyun.com

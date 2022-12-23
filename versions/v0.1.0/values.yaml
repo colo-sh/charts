@@ -7,7 +7,7 @@ crds:
 installation:
   namespace: colo-system
 
-imageRepositoryHost: ""
+imageRepositoryHost: "hub.kce.ksyun.com"
 
 imagePullSecrets: []
 

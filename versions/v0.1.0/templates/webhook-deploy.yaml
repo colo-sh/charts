@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-webhook-server
+  namespace: colo-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: pod-webhook-role
+  namespace: colo-system
+rules:
+- apiGroups:
+  - config.colo-sh.com
+  resources:
+  - clustercolocationprofiles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - config.colo-sh.com
+  resources:
+  - clustercolocationprofiles/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - config.colo-sh.com
+  resources:
+  - clustercolocationprofiles/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - scheduling.k8s.io
+  resources:
+  - priorityclasses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pod-webhook-rolebinding
+  namespace: colo-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pod-webhook-role
+subjects:
+- kind: ServiceAccount
+  name: pod-webhook-server
+  namespace: colo-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: pod-webhook-server
+  name: pod-webhook-server
+  namespace: colo-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pod-webhook-server
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: pod-webhook-server
+    spec:
+      containers:
+      - image: hub.kce.ksyun.com/zhihu/colo-pod-webhook-server:v0.1.0
+        imagePullPolicy: Always
+        name: colo-pod-webhook-server
+        resources: {}
+        volumeMounts:
+          - name: serving-certs
+            mountPath: /tmp/k8s-webhook-server/serving-certs
+      serviceAccountName: pod-webhook-server
+      volumes:
+        - name: serving-certs
+          secret: 
+            secretName: colo-pod-webhook-certs
+status: {}

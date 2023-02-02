@@ -1,0 +1,196 @@
+{{- if .Values.crds.managed }}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.7.0
+  creationTimestamp: null
+  name: clustercolocationprofiles.config.colo-sh.com
+spec:
+  group: config.colo-sh.com
+  names:
+    kind: ClusterColocationProfile
+    listKind: ClusterColocationProfileList
+    plural: clustercolocationprofiles
+    singular: clustercolocationprofile
+  scope: Cluster
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ClusterColocationProfile is the Schema for the clustercolocationprofiles
+          API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ClusterColocationProfileSpec defines the desired state of
+              ClusterColocationProfile
+            properties:
+              ColoPriority:
+                description: ColoPriority 定义了 colo 中的 Pod 次优先级。 优先级值将作为标签 colo-sh.sh/priority
+                  注入 Pod。 各个 colo 组件通过 ColoPriority 和 PriorityClassName 中的 priority
+                  值来确定 colo 中 Pod 的优先级。 值越高，优先级越高。
+                format: int32
+                type: integer
+              annotations:
+                additionalProperties:
+                  type: string
+                description: Annotations describes the k/v pair that needs to inject
+                  into Pod.Annotations
+                type: object
+              labels:
+                additionalProperties:
+                  type: string
+                description: Labels describes the k/v pair that needs to inject into
+                  Pod.Labels
+                type: object
+              namespaceSelector:
+                description: 如果命名空间与选择器匹配，则 NamespaceSelector 决定是否对 Pod 进行 mutatevalidate。
+                  默认为空的 LabelSelector，它匹配所有内容。
+                properties:
+                  matchExpressions:
+                    description: matchExpressions is a list of label selector requirements.
+                      The requirements are ANDed.
+                    items:
+                      description: A label selector requirement is a selector that
+                        contains values, a key, and an operator that relates the key
+                        and values.
+                      properties:
+                        key:
+                          description: key is the label key that the selector applies
+                            to.
+                          type: string
+                        operator:
+                          description: operator represents a key's relationship to
+                            a set of values. Valid operators are In, NotIn, Exists
+                            and DoesNotExist.
+                          type: string
+                        values:
+                          description: values is an array of string values. If the
+                            operator is In or NotIn, the values array must be non-empty.
+                            If the operator is Exists or DoesNotExist, the values
+                            array must be empty. This array is replaced during a strategic
+                            merge patch.
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: matchLabels is a map of {key,value} pairs. A single
+                      {key,value} in the matchLabels map is equivalent to an element
+                      of matchExpressions, whose key field is "key", the operator
+                      is "In", and the values array contains only "value". The requirements
+                      are ANDed.
+                    type: object
+                type: object
+              patch:
+                description: Patch indicates patching podTemplate that will be injected
+                  to the Pod.
+                x-kubernetes-preserve-unknown-fields: true
+              priorityClassName:
+                description: 如果指定，priorityClass 中定义的 priorityClassName 和 priority的值
+                  将被注入 Pod。 PriorityClassName、PriorityClassName 的 priority的值 和 ColoPriority
+                  会影响 colo-sh 系统的调度、抢占等行为。
+                enum:
+                - colo-prod
+                - colo-mid
+                - colo-batch
+                - colo-free
+                type: string
+              qosClass:
+                description: QoSClass 描述了 Pod 正在运行的colo-sh QoS 的类型。 该值将作为标签 colo-sh.sh/qosClass
+                  注入 Pod。 选项有 LSE/LSR/LS/BE/SYSTEM。
+                enum:
+                - LSE
+                - LSR
+                - LS
+                - BE
+                - SYSTEM
+                type: string
+              schedulerName:
+                description: If specified, the pod will be dispatched by specified
+                  scheduler.
+                type: string
+              selector:
+                description: 如果 Pod 与选择器匹配，Selector 决定是否对 Pod 进行 mutatevalidate。 默认为空的
+                  LabelSelector，它匹配所有内容。
+                properties:
+                  matchExpressions:
+                    description: matchExpressions is a list of label selector requirements.
+                      The requirements are ANDed.
+                    items:
+                      description: A label selector requirement is a selector that
+                        contains values, a key, and an operator that relates the key
+                        and values.
+                      properties:
+                        key:
+                          description: key is the label key that the selector applies
+                            to.
+                          type: string
+                        operator:
+                          description: operator represents a key's relationship to
+                            a set of values. Valid operators are In, NotIn, Exists
+                            and DoesNotExist.
+                          type: string
+                        values:
+                          description: values is an array of string values. If the
+                            operator is In or NotIn, the values array must be non-empty.
+                            If the operator is Exists or DoesNotExist, the values
+                            array must be empty. This array is replaced during a strategic
+                            merge patch.
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: matchLabels is a map of {key,value} pairs. A single
+                      {key,value} in the matchLabels map is equivalent to an element
+                      of matchExpressions, whose key field is "key", the operator
+                      is "In", and the values array contains only "value". The requirements
+                      are ANDed.
+                    type: object
+                type: object
+            required:
+            - priorityClassName
+            - qosClass
+            type: object
+          status:
+            description: ClusterColocationProfileStatus defines the observed state
+              of ClusterColocationProfile
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+  {{- end }}

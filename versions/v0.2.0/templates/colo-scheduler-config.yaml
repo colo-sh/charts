@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: colo-scheduler-config
+  namespace: {{ .Values.installation.namespace }}
+data:
+  colo-scheduler-config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1beta1
+    kind: KubeSchedulerConfiguration
+    leaderElection:
+      leaderElect: false
+    profiles:
+      - pluginConfig:
+        - name: LoadAwareScheduling
+          args:
+            apiVersion: kubescheduler.config.k8s.io/v1beta2
+            kind: LoadAwareSchedulingArgs
+            filterExpiredNodeMetrics: false
+            nodeMetricExpirationSeconds: 300
+            resourceWeights:
+              cpu: 1
+              memory: 1
+            usageThresholds:
+              cpu: 65
+              memory: 95
+            estimatedScalingFactors:
+              cpu: 85
+              memory: 70
+      - schedulerName: colo-scheduler
+        plugins:
+          preFilter:
+            enabled:
+            - name: ColocationFit
+          filter:
+            enabled:
+            - name: ColocationFit
+            - name: LoadAwareScheduling
+          score:
+            disabled:
+            - name: '*'
+            enabled:
+            - name: ColocationFit
+              weight: 1
+            - name: LoadAwareScheduling
+              weight: 1
+          queueSort:
+            disabled:
+            - name: '*'
+            enabled:
+            - name: ColocationFit
+          reserve:
+            enabled:
+            - name: LoadAwareScheduling

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller-manager
+  namespace: {{ .Values.installation.namespace }}
+  labels:
+    control-plane: controller-manager
+spec:
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        control-plane: controller-manager
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: false
+      containers:
+        - command:
+            - /workspace/colo-manager
+          args:
+            - --leader-elect
+            - --v={{ .Values.manager.log.level }}
+          {{- if .Values.imageRepositoryHost }}
+          image: {{ .Values.imageRepositoryHost }}/{{ .Values.manager.image.repository }}:{{ .Values.manager.image.tag }}
+          {{- else }}
+          image: {{ .Values.manager.image.repository }}:{{ .Values.manager.image.tag }}
+          {{- end}}
+          imagePullPolicy: Always
+          name: manager
+          securityContext:
+            allowPrivilegeEscalation: false
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          # TODO(user): Configure the resources accordingly based on the project requirements.
+          # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+          resources:
+            {{- toYaml .Values.manager.resources | nindent 12 }}
+      serviceAccountName: controller-manager
+      terminationGracePeriodSeconds: 10
+  {{- if .Values.manager.nodeSelector }}
+      nodeSelector:
+  {{ toYaml .Values.manager.nodeSelector | indent 8 }}
+  {{- end }}
+
+  {{- if .Values.manager.tolerations }}
+      tolerations:
+  {{ toYaml .Values.manager.tolerations | indent 8 }}
+  {{- end }}

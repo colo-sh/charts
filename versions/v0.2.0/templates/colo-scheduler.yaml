@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    component: colo-scheduler
+    tier: control-plane
+  name: colo-scheduler
+  namespace: {{ .Values.installation.namespace }}
+spec:
+  selector:
+    matchLabels:
+      component: colo-scheduler
+      tier: control-plane
+  replicas: {{ .Values.scheduler.replicas }}
+  template:
+    metadata:
+      labels:
+        component: colo-scheduler
+        tier: control-plane
+        version: second
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: colo-scheduler
+      containers:
+        - command:
+            - /workspace/colo-scheduler
+            - --port={{ .Values.scheduler.port }}
+            - --config=/etc/kubernetes/colo-scheduler/colo-scheduler-config.yaml
+            - --leader-elect-resource-namespace={{ .Values.installation.namespace }}
+            - --v={{ .Values.scheduler.log.level }}
+          {{- if .Values.imageRepositoryHost }}
+          image: {{ .Values.imageRepositoryHost }}/{{ .Values.scheduler.image.repository }}:{{ .Values.scheduler.image.tag }}
+          {{- else }}
+          image: {{ .Values.scheduler.image.repository }}:{{ .Values.scheduler.image.tag }}
+          {{- end}}
+          imagePullPolicy: Always
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 10259
+              scheme: HTTPS
+            initialDelaySeconds: 15
+          name: colo-scheduler
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 10259
+              scheme: HTTPS
+          resources:
+            {{- toYaml .Values.scheduler.resources | nindent 12 }}
+          securityContext:
+            privileged: false
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/kubernetes/colo-scheduler
+      hostNetwork: {{ .Values.scheduler.hostNetwork }}
+      hostPID: false
+      volumes:
+        - name: config-volume
+          configMap:
+            name: colo-scheduler-config
+  {{- if .Values.scheduler.nodeSelector }}
+      nodeSelector:
+  {{ toYaml .Values.scheduler.nodeSelector | indent 8 }}
+  {{- end }}
+
+  {{- if .Values.scheduler.tolerations }}
+      tolerations:
+  {{ toYaml .Values.scheduler.tolerations | indent 8 }}
+  {{- end }}

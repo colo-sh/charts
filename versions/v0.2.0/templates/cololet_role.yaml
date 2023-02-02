@@ -1,0 +1,45 @@
+
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cololet
+rules:
+  - apiGroups:
+      - colo-sh.com
+      - nodeslo.colo-sh.com
+    resources:
+      - metricsprograms
+      - nodes
+      - nodeslos
+      - nodeslos/status
+      - nodemetrics
+      - nodemetrics/status
+    verbs:
+      - '*'
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+    verbs:
+      - get
+      - list
+      - watch
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cololet
+  namespace: {{ .Values.installation.namespace }}
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cololet
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cololet
+subjects:
+  - kind: ServiceAccount
+    name: cololet
+    namespace: {{ .Values.installation.namespace }}

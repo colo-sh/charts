@@ -24,6 +24,15 @@ rules:
       - get
       - list
       - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods/eviction
+    verbs:
+      - get
+      - list
+      - watch
+      - create
 ---
 apiVersion: v1
 kind: ServiceAccount

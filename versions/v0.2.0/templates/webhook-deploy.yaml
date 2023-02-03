@@ -88,16 +88,16 @@ spec:
       labels:
         app: pod-webhook-server
     spec:
-      { { - with .Values.imagePullSecrets } }
+      {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
-      { { - toYaml . | nindent 8 } }
-      { { - end } }
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - name: colo-pod-webhook-server
-        { { - if .Values.imageRepositoryHost } }
-        image: { { .Values.imageRepositoryHost } }/{{ .Values.webhook.image.repository }}:{{ .Values.webhook.image.tag }}
+        {{- if .Values.imageRepositoryHost }}
+        image: {{ .Values.imageRepositoryHost }}/{{ .Values.webhook.image.repository }}:{{ .Values.webhook.image.tag }}
         {{- else }}
-        image: { { .Values.webhook.image.repository } }:{{ .Values.webhook.image.tag }}
+        image: {{ .Values.webhook.image.repository }}:{{ .Values.webhook.image.tag }}
         {{- end}}
         resources:
           {{- toYaml .Values.webhook.resources | nindent 12 }}

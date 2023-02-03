@@ -20,21 +20,21 @@ spec:
       labels:
         colo-app: colo-descheduler
     spec:
-      { { - with .Values.imagePullSecrets } }
+      {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
-      { { - toYaml . | nindent 8 } }
-      { { - end } }
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - args:
             - --v=4
             - --config=/config/colo-descheduler.config
           command:
             - /workspace/colo-descheduler
-          { { - if .Values.imageRepositoryHost } }
-          image: { { .Values.imageRepositoryHost } }/{{ .Values.descheduler.image.repository }}:{{ .Values.descheduler.image.tag }}
+          {{- if .Values.imageRepositoryHost }}
+          image: {{ .Values.imageRepositoryHost }}/{{ .Values.descheduler.image.repository }}:{{ .Values.descheduler.image.tag }}
           {{- else }}
-          image: { { .Values.descheduler.image.repository } }:{{ .Values.descheduler.image.tag }}
-          {{- end}}
+          image: {{ .Values.descheduler.image.repository }}:{{ .Values.descheduler.image.tag }}
+          {{- end }}
           name: descheduler
           readinessProbe:
             failureThreshold: 3

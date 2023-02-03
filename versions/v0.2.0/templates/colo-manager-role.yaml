@@ -7,11 +7,11 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: proxy-rolebinding
+  name: manager-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: proxy-role
+  name: manager-role
 subjects:
   - kind: ServiceAccount
     name: controller-manager
@@ -20,18 +20,116 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: proxy-role
+  creationTimestamp: null
+  name: manager-role
 rules:
   - apiGroups:
-      - authentication.k8s.io
+      - nodeslo.colo-sh.com
     resources:
-      - tokenreviews
+      - nodemetrics
     verbs:
       - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
   - apiGroups:
-      - authorization.k8s.io
+      - nodeslo.colo-sh.com
     resources:
-      - subjectaccessreviews
+      - nodemetrics/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - nodeslo.colo-sh.com
+    resources:
+      - nodemetrics/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - nodeslo.colo-sh.com
+    resources:
+      - nodeslos
     verbs:
       - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - nodeslo.colo-sh.com
+    resources:
+      - nodeslos/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - nodeslo.colo-sh.com
+    resources:
+      - nodeslos/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - scheduling.colo-sh.com
+    resources:
+      - devices
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - scheduling.colo-sh.com
+    resources:
+      - devices/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - scheduling.colo-sh.com
+    resources:
+      - devices/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - "nodes"
+    verbs:
+      - "get"
+      - "watch"
+      - "list"
+  - apiGroups:
+      - ""
+    resources:
+      - "nodes/status"
+    verbs:
+      - "update"
+      - "patch"
+  - apiGroups:
+      - ""
+    resources:
+      - "configmaps"
+    verbs:
+      - "get"
+      - "watch"
+      - "list"
+  - apiGroups:
+      - ""
+    resources:
+      - "pods"
+    verbs:
+      - "get"
+      - "watch"
+      - "list"
 

@@ -10,7 +10,57 @@ data:
     leaderElection:
       leaderElect: false
     profiles:
-      - pluginConfig:
+      - schedulerName: colo-scheduler
+        plugins:
+            preFilter:
+              disabled:
+              - name: VolumeBinding
+              enabled:
+              - name: ColocationFit
+              - name: Reservation
+            filter:
+              disabled:
+              - name: '*'
+              enabled:
+              - name: ColocationFit
+              - name: NodeAffinity
+              - name: NodeUnschedulable
+              - name: NodeName
+              - name: Reservation
+              - name: TaintToleration
+              - name: NodePorts
+              - name: LoadAwareScheduling
+            score:
+              disabled:
+              - name: '*'
+              enabled:
+              - name: ColocationFit
+                weight: 1
+              - name: Reservation
+                weight: 5000
+              - name: LoadAwareScheduling
+                weight: 1
+            queueSort:
+              disabled:
+              - name: '*'
+              enabled:
+              - name: ColocationFit
+            reserve:
+              disabled:
+              - name: '*'
+              enabled:
+              - name: Reservation
+              - name: LoadAwareScheduling
+            preBind:
+              disabled:
+              - name: '*'
+            bind:
+              disabled:
+              - name: '*'
+              enabled:
+              - name: Reservation
+              - name: DefaultBinder
+        pluginConfig:
         - name: LoadAwareScheduling
           args:
             apiVersion: kubescheduler.config.k8s.io/v1beta2
@@ -26,28 +76,3 @@ data:
             estimatedScalingFactors:
               cpu: 85
               memory: 70
-      - schedulerName: colo-scheduler
-        plugins:
-          preFilter:
-            enabled:
-            - name: ColocationFit
-          filter:
-            enabled:
-            - name: ColocationFit
-            - name: LoadAwareScheduling
-          score:
-            disabled:
-            - name: '*'
-            enabled:
-            - name: ColocationFit
-              weight: 1
-            - name: LoadAwareScheduling
-              weight: 1
-          queueSort:
-            disabled:
-            - name: '*'
-            enabled:
-            - name: ColocationFit
-          reserve:
-            enabled:
-            - name: LoadAwareScheduling

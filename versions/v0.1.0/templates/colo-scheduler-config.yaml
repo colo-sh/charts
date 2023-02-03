@@ -14,15 +14,15 @@ data:
         plugins:
           filter:
             enabled:
-            - name: Colocation
+            - name: ColocationFit
           score:
             disabled:
             - name: '*'
             enabled:
-            - name: Colocation
+            - name: ColocationFit
               weight: 1
           queueSort:
             disabled:
             - name: '*'
             enabled:
-            - name: Colocation
+            - name: ColocationFit

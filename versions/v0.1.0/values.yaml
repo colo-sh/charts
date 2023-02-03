@@ -13,7 +13,7 @@ imagePullSecrets: []
 
 cololet:
   image:
-    repository: zhihu/cololet
+    repository: colo/cololet
     tag: v0.1.0
   resources:
     limits:
@@ -41,7 +41,7 @@ scheduler:
 
   replicas: 2
   image:
-    repository: zhihu/colo-scheduler
+    repository: colo/colo-scheduler
     tag: v0.1.0
   port: 10251
 
@@ -67,7 +67,7 @@ manager:
 
   replicas: 2
   image:
-    repository: zhihu/colo-manager
+    repository: colo/colo-manager
     tag: v0.1.0
 
   # resources of colo-manager container

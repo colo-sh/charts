@@ -12,6 +12,9 @@ data:
     profiles:
       - schedulerName: colo-scheduler
         plugins:
+          preFilter:
+            enabled:
+            - name: ColocationFit
           filter:
             enabled:
             - name: ColocationFit

@@ -28,7 +28,7 @@ spec:
         - command:
             - /workspace/colo-scheduler
             - --port={{ .Values.scheduler.port }}
-            - --config=/etc/kubernetes/colo-scheduler/colo-scheduler-config.yaml
+            - --config=/config/colo-scheduler-config.yaml
             - --leader-elect-resource-namespace={{ .Values.installation.namespace }}
             - --v={{ .Values.scheduler.log.level }}
           {{- if .Values.imageRepositoryHost }}
@@ -55,7 +55,7 @@ spec:
             privileged: false
           volumeMounts:
             - name: config-volume
-              mountPath: /etc/kubernetes/colo-scheduler
+              mountPath: /config/
       hostNetwork: {{ .Values.scheduler.hostNetwork }}
       hostPID: false
       volumes:

@@ -61,6 +61,10 @@ spec:
       volumes:
         - name: config-volume
           configMap:
+            defaultMode: 420
+            items:
+              - key: colo-scheduler-config.yaml
+                path: colo-scheduler-config.yaml
             name: colo-scheduler-config
   {{- if .Values.scheduler.nodeSelector }}
       nodeSelector:

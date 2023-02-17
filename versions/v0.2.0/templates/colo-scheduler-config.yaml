@@ -13,14 +13,10 @@ data:
       - schedulerName: colo-scheduler
         plugins:
             preFilter:
-              disabled:
-              - name: VolumeBinding
               enabled:
               - name: ColocationFit
               - name: Reservation
             filter:
-              disabled:
-              - name: '*'
               enabled:
               - name: ColocationFit
               - name: NodeAffinity

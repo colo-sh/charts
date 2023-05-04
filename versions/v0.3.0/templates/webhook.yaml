@@ -1,0 +1,29 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: pod-webhook
+      namespace: {{ .Values.installation.namespace }}
+      path: /mutate-v1-pod
+    caBundle: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMxVENDQWIyZ0F3SUJBZ0lRZk1LRDRzcHZQdFBrTVdNQmJGdXZXakFOQmdrcWhraUc5dzBCQVFzRkFEQUEKTUI0WERUSXlNVEl4TWpFME1qRTFNVm9YRFRJek1ETXhNakUwTWpFMU1Wb3dBRENDQVNJd0RRWUpLb1pJaHZjTgpBUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTWdPZkhiOEJXODFmNnJqcnZCSldGUVJYWlFZY3hXdEhzVzR3QlkrCkRqMU5XSGE1YTlraXM3MFNiWmhNUi8xTjN3NzBMV2syUElnbmFGbUJuNkpkamRQbnNVT3RPSnVDRFhNSmJXdEoKWWRIN3BWR1VRT3lLV3RlY3llTzB0U0srVDBlYkFNcUlWZk0zTytPZVJyNGRuL3l4MGhsQi9STXlsdjVJSG0wcAo1RWR4VkF4NkZ2S05LT2o2QzFuN1I0YnRZekt1ZnFzdXk4QzJWZkRiUm9teTMrVGFrbGQxbjVUcjdSZ0dhWVRPCmpiRlg4bWpaRmk2aHhKemNESG9iSEJmOVZ2M3NVZWlFMEUvVXBoelBmTyt5VFN5WTRTeFNOejNzTTRMWExmaGIKNmdqaWxsNm1VcW5Gcm9lWmhRUThRREx3NG50WEp4WkIzL1g5bitteml2OUZoakVDQXdFQUFhTkxNRWt3RGdZRApWUjBQQVFIL0JBUURBZ1dnTUF3R0ExVWRFd0VCL3dRQ01BQXdLUVlEVlIwUkFRSC9CQjh3SFlJYmNHOWtMWGRsClltaHZiMnN1WTI5c2J5MXplWE4wWlcwdWMzWmpNQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUF5S2YwdXV3TDIKLytqb1NFNTdJQmF2WVNWOHgzdXAyUW9wK0lwb2QvaDdSUVhKZ3JWTXN2QkNzS0NQaEdpQURJOHZkbFp1TEpVVQpYdTJ5Ui96UDR5UjY3bmZhTnZZNEJFRVBMUzhwdHBSTVhzaE9UUTh4WjZ0UzlMaGZxQnBTSTdLaWVRWW1tTXhpCnFtUVMrMnlxbjdqNnRyT0lpaFpPUTFlTXF6TmJnOEcvWloxdUd2c2hITlcvS2dzZTVXZzV1ZjMvZk5ZYXJvQlYKN3hIT1hGa0ExVnhCSFcrU3czbzRnQ3NLa3pUcU9WNm9jQkdid0tZSzkyWkpUajY4OVdyVzBqYXc1Qkg2MVE5ZApsd1I2a3BadXV0VWZ2Unc5RWljaDJCYUtGU3QxVjJ3SWl2MUJDNTR1UUZrdGFJSVRackhOUXZLTDd0bXhlejBTCmdZbG5WRlZIWUVOSQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg=="
+  failurePolicy: Fail
+  name: mpod.colo.sh
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - pods
+  sideEffects: None

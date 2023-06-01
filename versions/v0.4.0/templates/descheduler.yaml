@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    colo-app: colo-descheduler
+  name: descheduler
+  namespace: {{ .Values.installation.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      colo-app: colo-descheduler
+  strategy:
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        colo-app: colo-descheduler
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - args:
+            - --v=4
+            - --config=/config/colo-descheduler.config
+          command:
+            - /workspace/colo-descheduler
+          {{- if .Values.imageRepositoryHost }}
+          image: {{ .Values.imageRepositoryHost }}/{{ .Values.descheduler.image.repository }}:{{ .Values.descheduler.image.tag }}
+          {{- else }}
+          image: {{ .Values.descheduler.image.repository }}:{{ .Values.descheduler.image.tag }}
+          {{- end }}
+          name: descheduler
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: healthz
+              port: 10251
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 256Mi
+          volumeMounts:
+            - mountPath: /config
+              name: colo-descheduler-config-volume
+      serviceAccountName: colo-descheduler
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - configMap:
+            defaultMode: 420
+            items:
+              - key: colo-descheduler-config
+                path: colo-descheduler.config
+            name: descheduler-config
+          name: colo-descheduler-config-volume

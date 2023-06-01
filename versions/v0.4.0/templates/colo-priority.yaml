@@ -1,0 +1,31 @@
+apiVersion: scheduling.k8s.io/v1
+description: Online production system for applications and businesses.
+kind: PriorityClass
+metadata:
+  name: colo-prod
+preemptionPolicy: PreemptLowerPriority
+value: 9000
+---
+apiVersion: scheduling.k8s.io/v1
+description: Online production system for applications and businesses.
+kind: PriorityClass
+metadata:
+  name: colo-mid
+preemptionPolicy: PreemptLowerPriority
+value: 7000
+---
+apiVersion: scheduling.k8s.io/v1
+description: Online production system for applications and businesses.
+kind: PriorityClass
+metadata:
+  name: colo-batch
+preemptionPolicy: PreemptLowerPriority
+value: 5000
+---
+apiVersion: scheduling.k8s.io/v1
+description: Online production system for applications and businesses.
+kind: PriorityClass
+metadata:
+  name: colo-free
+preemptionPolicy: PreemptLowerPriority
+value: 3000

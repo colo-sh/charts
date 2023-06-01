@@ -1,0 +1,732 @@
+{{- if .Values.crds.managed }}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.7.0
+  creationTimestamp: null
+  name: nodeslos.nodeslo.colo-sh.com
+spec:
+  group: nodeslo.colo-sh.com
+  names:
+    kind: NodeSLO
+    listKind: NodeSLOList
+    plural: nodeslos
+    singular: nodeslo
+  scope: Cluster
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: NodeSLO is the Schema for the nodeslos API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: NodeSLOSpec defines the desired state of NodeSLO
+            properties:
+              CPUBurstStrategy:
+                description: CPU 突发策略
+                properties:
+                  cfsQuotaBurstPercent:
+                    default: 300
+                    description: pod cfs quota scale up ceil percentage, default =
+                      300 (300%)
+                    format: int64
+                    type: integer
+                  cfsQuotaBurstPeriodSeconds:
+                    default: -1
+                    description: 指定 pod 可以在突发时使用的时间段，默认 = -1（无限制）
+                    format: int64
+                    type: integer
+                  cpuBurstPercent:
+                    default: 1000
+                    description: 用于设置 cpu.cfs_burst_us 的 cpu 爆发百分比，合法范围：[0, 10000]，默认为
+                      1000 (1000%)
+                    format: int64
+                    maximum: 10000
+                    minimum: 0
+                    type: integer
+                  policy:
+                    type: string
+                  sharePoolThresholdPercent:
+                    default: 50
+                    description: scale down cfs quota if node cpu overload, default
+                      = 50
+                    format: int64
+                    type: integer
+                type: object
+              resourceQOSStrategy:
+                description: 不同 qos-class 的 Pod 的 Qos 配置策略
+                properties:
+                  BEClass:
+                    description: BEClass for BE pods.
+                    properties:
+                      CPUQOS:
+                        description: CPUQOSCfg 存储 cpu qos 的 node-level 配置
+                        properties:
+                          Enable:
+                            description: Enable表示cpu qos是否开启。
+                            type: boolean
+                          GroupIdentity:
+                            description: pod 的组标识值，默认值 = 0
+                            format: int64
+                            type: integer
+                        type: object
+                      MemoryQOS:
+                        description: MemoryQOSCfg 存储 memory qos 的 node-level 配置
+                        properties:
+                          Enable:
+                            description: Enable表示是否启用内存qos（默认：false）。 该字段用于 node-level
+                              的控制，而 pod-level 的配置是使用 MemoryQOS 和 `Policy` 而不是 `Enable`
+                              选项完成的。 查看 MemoryQOSCfg 和 PodMemoryQOSConfig 结构体之间的区别
+                            type: boolean
+                          LowLimitPercent:
+                            description: LowLimitPercent 指定计算 `memory.low` 的 lowLimitFactor
+                              百分比， 当内存使用量不超过下限时，它会尽力保护内存免受全局回收， 除非没有未受保护的 memcg 可以回收。
+                              注意：`memory.low` 应该大于`memory.min`。 如果 spec.requests.memory
+                              == spec.limits.memory，pod `memory.low` 和 `memory.high`
+                              变得无效， 而 `memory.wmark_ratio` 仍然有效。 Close:0
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          MinLimitPercent:
+                            description: "memcg qos 如果启用，memcg qos 将由 agent 设置，其中一些字段是从
+                              pod 规范中隐式计算的。 \t1. `memory.min` := spec.requests.memory
+                              minLimitFactor 100（如果未设置 requests.memory 则使用 0） \t2.
+                              `memory.low` := spec.requests.memory lowLimitFactor
+                              100（如果 requests.memory 使用 0未设置） \t3. `memory.limit_in_bytes`
+                              := spec.limits.memory （如果未设置limits.memory，则设置node.allocatable.memory）
+                              \t4. `memory.high` := memory.limit_in_bytes throttlingFactor
+                              100 （使用“ max\" if memory.high <= memory.min) MinLimitPercent
+                              指定 minLimitFactor 百分比来计算`memory.min`， 当内存使用不超过最小限制时，它可以保护内存免受全局回收。
+                              Close:0"
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          OoKillGroup:
+                            format: int64
+                            type: integer
+                          Priority:
+                            format: int64
+                            type: integer
+                          PriorityEnable:
+                            format: int64
+                            type: integer
+                          ThrottlingPercent:
+                            description: ThrottlingPercent 指定 throttlingFactor 百分比来计算
+                              `memory.high` 与 pod memory.limits 或 node 可分配内存， 当内存使用超过时触发
+                              memcg 直接回收。 降低系数带来更重的回收压力。 Close:0
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          WmarkMinAdj:
+                            description: 'wmark_min_adj（需要 Anolis 操作系统） WmarkMinAdj
+                              指定 `memory.wmark_min_adj` 来调整全局内存回收的 per-memcg 阈值。 降低因子带来后期回收。调整对不同的值范围使用不同的公式。
+                              [-25, 0)：global_wmark_min'' = global_wmark_min + (global_wmark_min
+                              - 0) * wmarkMinAdj (0, 50]：global_wmark_min'' = global_wmark_min
+                              + (global_wmark_low - global_wmark_min) * wmarkMinAdj
+                              Close: [LSR:0, LS:0, BE:0]. Recommended: [LSR:-25, LS:-25,
+                              BE:50].'
+                            format: int64
+                            maximum: 50
+                            minimum: -25
+                            type: integer
+                          WmarkRation:
+                            description: wmark_ratio (需要 Anolis OS) 当 cgroup 内存使用量超过
+                              `memory.wmark_high` 时触发异步内存回收， 当使用量低于 `memory.wmark_low`
+                              时停止回收。 基本上，`memory.wmark_high` := min(memory.high, memory.limit_in_bytes)*memory.memory.wmark_ratio
+                              `memory.wmark_low` := min(memory.high, memory.limit_in_bytes)
+                              *(memory.wmark_ratio - memory.wmark_scale_factor) WmarkRatio
+                              指定 `memory.wmark_ratio` 帮助计算 `memory.wmark_high`，当内存使用超过时触发异步内存回收。
+                              关闭：0。推荐：95。
+                            format: int64
+                            maximum: 100
+                            minimum: 0
+                            type: integer
+                          WmarkScalePermill:
+                            description: WmarkScalePermill 指定 `memory.wmark_scale_factor`
+                              帮助计算 `memory.wmark_low`， 当内存使用量低于时停止异步内存回收。 Close:50.
+                              Recommended:20.
+                            format: int64
+                            maximum: 1000
+                            minimum: 1
+                            type: integer
+                        type: object
+                      ResctrlQOS:
+                        properties:
+                          CATRangeEndPercent:
+                            default: 0
+                            description: pod 的 LLC 可用范围结束（百分比）
+                            format: int64
+                            maximum: 100
+                            type: integer
+                          CATRangeStartPercent:
+                            default: 0
+                            description: pod 的 LLC 可用范围起始（百分比）
+                            format: int64
+                            maximum: 100
+                            type: integer
+                          Enable:
+                            description: Enable 表示是否启用 resctrl qos。
+                            type: boolean
+                          MBAPercent:
+                            default: 0
+                            description: MBA 百分率
+                            format: int64
+                            maximum: 100
+                            type: integer
+                        type: object
+                    type: object
+                  CgroupRoot:
+                    description: CgroupRoot for root cgroup.
+                    properties:
+                      CPUQOS:
+                        description: CPUQOSCfg 存储 cpu qos 的 node-level 配置
+                        properties:
+                          Enable:
+                            description: Enable表示cpu qos是否开启。
+                            type: boolean
+                          GroupIdentity:
+                            description: pod 的组标识值，默认值 = 0
+                            format: int64
+                            type: integer
+                        type: object
+                      MemoryQOS:
+                        description: MemoryQOSCfg 存储 memory qos 的 node-level 配置
+                        properties:
+                          Enable:
+                            description: Enable表示是否启用内存qos（默认：false）。 该字段用于 node-level
+                              的控制，而 pod-level 的配置是使用 MemoryQOS 和 `Policy` 而不是 `Enable`
+                              选项完成的。 查看 MemoryQOSCfg 和 PodMemoryQOSConfig 结构体之间的区别
+                            type: boolean
+                          LowLimitPercent:
+                            description: LowLimitPercent 指定计算 `memory.low` 的 lowLimitFactor
+                              百分比， 当内存使用量不超过下限时，它会尽力保护内存免受全局回收， 除非没有未受保护的 memcg 可以回收。
+                              注意：`memory.low` 应该大于`memory.min`。 如果 spec.requests.memory
+                              == spec.limits.memory，pod `memory.low` 和 `memory.high`
+                              变得无效， 而 `memory.wmark_ratio` 仍然有效。 Close:0
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          MinLimitPercent:
+                            description: "memcg qos 如果启用，memcg qos 将由 agent 设置，其中一些字段是从
+                              pod 规范中隐式计算的。 \t1. `memory.min` := spec.requests.memory
+                              minLimitFactor 100（如果未设置 requests.memory 则使用 0） \t2.
+                              `memory.low` := spec.requests.memory lowLimitFactor
+                              100（如果 requests.memory 使用 0未设置） \t3. `memory.limit_in_bytes`
+                              := spec.limits.memory （如果未设置limits.memory，则设置node.allocatable.memory）
+                              \t4. `memory.high` := memory.limit_in_bytes throttlingFactor
+                              100 （使用“ max\" if memory.high <= memory.min) MinLimitPercent
+                              指定 minLimitFactor 百分比来计算`memory.min`， 当内存使用不超过最小限制时，它可以保护内存免受全局回收。
+                              Close:0"
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          OoKillGroup:
+                            format: int64
+                            type: integer
+                          Priority:
+                            format: int64
+                            type: integer
+                          PriorityEnable:
+                            format: int64
+                            type: integer
+                          ThrottlingPercent:
+                            description: ThrottlingPercent 指定 throttlingFactor 百分比来计算
+                              `memory.high` 与 pod memory.limits 或 node 可分配内存， 当内存使用超过时触发
+                              memcg 直接回收。 降低系数带来更重的回收压力。 Close:0
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          WmarkMinAdj:
+                            description: 'wmark_min_adj（需要 Anolis 操作系统） WmarkMinAdj
+                              指定 `memory.wmark_min_adj` 来调整全局内存回收的 per-memcg 阈值。 降低因子带来后期回收。调整对不同的值范围使用不同的公式。
+                              [-25, 0)：global_wmark_min'' = global_wmark_min + (global_wmark_min
+                              - 0) * wmarkMinAdj (0, 50]：global_wmark_min'' = global_wmark_min
+                              + (global_wmark_low - global_wmark_min) * wmarkMinAdj
+                              Close: [LSR:0, LS:0, BE:0]. Recommended: [LSR:-25, LS:-25,
+                              BE:50].'
+                            format: int64
+                            maximum: 50
+                            minimum: -25
+                            type: integer
+                          WmarkRation:
+                            description: wmark_ratio (需要 Anolis OS) 当 cgroup 内存使用量超过
+                              `memory.wmark_high` 时触发异步内存回收， 当使用量低于 `memory.wmark_low`
+                              时停止回收。 基本上，`memory.wmark_high` := min(memory.high, memory.limit_in_bytes)*memory.memory.wmark_ratio
+                              `memory.wmark_low` := min(memory.high, memory.limit_in_bytes)
+                              *(memory.wmark_ratio - memory.wmark_scale_factor) WmarkRatio
+                              指定 `memory.wmark_ratio` 帮助计算 `memory.wmark_high`，当内存使用超过时触发异步内存回收。
+                              关闭：0。推荐：95。
+                            format: int64
+                            maximum: 100
+                            minimum: 0
+                            type: integer
+                          WmarkScalePermill:
+                            description: WmarkScalePermill 指定 `memory.wmark_scale_factor`
+                              帮助计算 `memory.wmark_low`， 当内存使用量低于时停止异步内存回收。 Close:50.
+                              Recommended:20.
+                            format: int64
+                            maximum: 1000
+                            minimum: 1
+                            type: integer
+                        type: object
+                      ResctrlQOS:
+                        properties:
+                          CATRangeEndPercent:
+                            default: 0
+                            description: pod 的 LLC 可用范围结束（百分比）
+                            format: int64
+                            maximum: 100
+                            type: integer
+                          CATRangeStartPercent:
+                            default: 0
+                            description: pod 的 LLC 可用范围起始（百分比）
+                            format: int64
+                            maximum: 100
+                            type: integer
+                          Enable:
+                            description: Enable 表示是否启用 resctrl qos。
+                            type: boolean
+                          MBAPercent:
+                            default: 0
+                            description: MBA 百分率
+                            format: int64
+                            maximum: 100
+                            type: integer
+                        type: object
+                    type: object
+                  LSClass:
+                    description: LSClass for LS pods.
+                    properties:
+                      CPUQOS:
+                        description: CPUQOSCfg 存储 cpu qos 的 node-level 配置
+                        properties:
+                          Enable:
+                            description: Enable表示cpu qos是否开启。
+                            type: boolean
+                          GroupIdentity:
+                            description: pod 的组标识值，默认值 = 0
+                            format: int64
+                            type: integer
+                        type: object
+                      MemoryQOS:
+                        description: MemoryQOSCfg 存储 memory qos 的 node-level 配置
+                        properties:
+                          Enable:
+                            description: Enable表示是否启用内存qos（默认：false）。 该字段用于 node-level
+                              的控制，而 pod-level 的配置是使用 MemoryQOS 和 `Policy` 而不是 `Enable`
+                              选项完成的。 查看 MemoryQOSCfg 和 PodMemoryQOSConfig 结构体之间的区别
+                            type: boolean
+                          LowLimitPercent:
+                            description: LowLimitPercent 指定计算 `memory.low` 的 lowLimitFactor
+                              百分比， 当内存使用量不超过下限时，它会尽力保护内存免受全局回收， 除非没有未受保护的 memcg 可以回收。
+                              注意：`memory.low` 应该大于`memory.min`。 如果 spec.requests.memory
+                              == spec.limits.memory，pod `memory.low` 和 `memory.high`
+                              变得无效， 而 `memory.wmark_ratio` 仍然有效。 Close:0
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          MinLimitPercent:
+                            description: "memcg qos 如果启用，memcg qos 将由 agent 设置，其中一些字段是从
+                              pod 规范中隐式计算的。 \t1. `memory.min` := spec.requests.memory
+                              minLimitFactor 100（如果未设置 requests.memory 则使用 0） \t2.
+                              `memory.low` := spec.requests.memory lowLimitFactor
+                              100（如果 requests.memory 使用 0未设置） \t3. `memory.limit_in_bytes`
+                              := spec.limits.memory （如果未设置limits.memory，则设置node.allocatable.memory）
+                              \t4. `memory.high` := memory.limit_in_bytes throttlingFactor
+                              100 （使用“ max\" if memory.high <= memory.min) MinLimitPercent
+                              指定 minLimitFactor 百分比来计算`memory.min`， 当内存使用不超过最小限制时，它可以保护内存免受全局回收。
+                              Close:0"
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          OoKillGroup:
+                            format: int64
+                            type: integer
+                          Priority:
+                            format: int64
+                            type: integer
+                          PriorityEnable:
+                            format: int64
+                            type: integer
+                          ThrottlingPercent:
+                            description: ThrottlingPercent 指定 throttlingFactor 百分比来计算
+                              `memory.high` 与 pod memory.limits 或 node 可分配内存， 当内存使用超过时触发
+                              memcg 直接回收。 降低系数带来更重的回收压力。 Close:0
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          WmarkMinAdj:
+                            description: 'wmark_min_adj（需要 Anolis 操作系统） WmarkMinAdj
+                              指定 `memory.wmark_min_adj` 来调整全局内存回收的 per-memcg 阈值。 降低因子带来后期回收。调整对不同的值范围使用不同的公式。
+                              [-25, 0)：global_wmark_min'' = global_wmark_min + (global_wmark_min
+                              - 0) * wmarkMinAdj (0, 50]：global_wmark_min'' = global_wmark_min
+                              + (global_wmark_low - global_wmark_min) * wmarkMinAdj
+                              Close: [LSR:0, LS:0, BE:0]. Recommended: [LSR:-25, LS:-25,
+                              BE:50].'
+                            format: int64
+                            maximum: 50
+                            minimum: -25
+                            type: integer
+                          WmarkRation:
+                            description: wmark_ratio (需要 Anolis OS) 当 cgroup 内存使用量超过
+                              `memory.wmark_high` 时触发异步内存回收， 当使用量低于 `memory.wmark_low`
+                              时停止回收。 基本上，`memory.wmark_high` := min(memory.high, memory.limit_in_bytes)*memory.memory.wmark_ratio
+                              `memory.wmark_low` := min(memory.high, memory.limit_in_bytes)
+                              *(memory.wmark_ratio - memory.wmark_scale_factor) WmarkRatio
+                              指定 `memory.wmark_ratio` 帮助计算 `memory.wmark_high`，当内存使用超过时触发异步内存回收。
+                              关闭：0。推荐：95。
+                            format: int64
+                            maximum: 100
+                            minimum: 0
+                            type: integer
+                          WmarkScalePermill:
+                            description: WmarkScalePermill 指定 `memory.wmark_scale_factor`
+                              帮助计算 `memory.wmark_low`， 当内存使用量低于时停止异步内存回收。 Close:50.
+                              Recommended:20.
+                            format: int64
+                            maximum: 1000
+                            minimum: 1
+                            type: integer
+                        type: object
+                      ResctrlQOS:
+                        properties:
+                          CATRangeEndPercent:
+                            default: 0
+                            description: pod 的 LLC 可用范围结束（百分比）
+                            format: int64
+                            maximum: 100
+                            type: integer
+                          CATRangeStartPercent:
+                            default: 0
+                            description: pod 的 LLC 可用范围起始（百分比）
+                            format: int64
+                            maximum: 100
+                            type: integer
+                          Enable:
+                            description: Enable 表示是否启用 resctrl qos。
+                            type: boolean
+                          MBAPercent:
+                            default: 0
+                            description: MBA 百分率
+                            format: int64
+                            maximum: 100
+                            type: integer
+                        type: object
+                    type: object
+                  LSRclass:
+                    description: LSRclass for LSR pods.
+                    properties:
+                      CPUQOS:
+                        description: CPUQOSCfg 存储 cpu qos 的 node-level 配置
+                        properties:
+                          Enable:
+                            description: Enable表示cpu qos是否开启。
+                            type: boolean
+                          GroupIdentity:
+                            description: pod 的组标识值，默认值 = 0
+                            format: int64
+                            type: integer
+                        type: object
+                      MemoryQOS:
+                        description: MemoryQOSCfg 存储 memory qos 的 node-level 配置
+                        properties:
+                          Enable:
+                            description: Enable表示是否启用内存qos（默认：false）。 该字段用于 node-level
+                              的控制，而 pod-level 的配置是使用 MemoryQOS 和 `Policy` 而不是 `Enable`
+                              选项完成的。 查看 MemoryQOSCfg 和 PodMemoryQOSConfig 结构体之间的区别
+                            type: boolean
+                          LowLimitPercent:
+                            description: LowLimitPercent 指定计算 `memory.low` 的 lowLimitFactor
+                              百分比， 当内存使用量不超过下限时，它会尽力保护内存免受全局回收， 除非没有未受保护的 memcg 可以回收。
+                              注意：`memory.low` 应该大于`memory.min`。 如果 spec.requests.memory
+                              == spec.limits.memory，pod `memory.low` 和 `memory.high`
+                              变得无效， 而 `memory.wmark_ratio` 仍然有效。 Close:0
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          MinLimitPercent:
+                            description: "memcg qos 如果启用，memcg qos 将由 agent 设置，其中一些字段是从
+                              pod 规范中隐式计算的。 \t1. `memory.min` := spec.requests.memory
+                              minLimitFactor 100（如果未设置 requests.memory 则使用 0） \t2.
+                              `memory.low` := spec.requests.memory lowLimitFactor
+                              100（如果 requests.memory 使用 0未设置） \t3. `memory.limit_in_bytes`
+                              := spec.limits.memory （如果未设置limits.memory，则设置node.allocatable.memory）
+                              \t4. `memory.high` := memory.limit_in_bytes throttlingFactor
+                              100 （使用“ max\" if memory.high <= memory.min) MinLimitPercent
+                              指定 minLimitFactor 百分比来计算`memory.min`， 当内存使用不超过最小限制时，它可以保护内存免受全局回收。
+                              Close:0"
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          OoKillGroup:
+                            format: int64
+                            type: integer
+                          Priority:
+                            format: int64
+                            type: integer
+                          PriorityEnable:
+                            format: int64
+                            type: integer
+                          ThrottlingPercent:
+                            description: ThrottlingPercent 指定 throttlingFactor 百分比来计算
+                              `memory.high` 与 pod memory.limits 或 node 可分配内存， 当内存使用超过时触发
+                              memcg 直接回收。 降低系数带来更重的回收压力。 Close:0
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          WmarkMinAdj:
+                            description: 'wmark_min_adj（需要 Anolis 操作系统） WmarkMinAdj
+                              指定 `memory.wmark_min_adj` 来调整全局内存回收的 per-memcg 阈值。 降低因子带来后期回收。调整对不同的值范围使用不同的公式。
+                              [-25, 0)：global_wmark_min'' = global_wmark_min + (global_wmark_min
+                              - 0) * wmarkMinAdj (0, 50]：global_wmark_min'' = global_wmark_min
+                              + (global_wmark_low - global_wmark_min) * wmarkMinAdj
+                              Close: [LSR:0, LS:0, BE:0]. Recommended: [LSR:-25, LS:-25,
+                              BE:50].'
+                            format: int64
+                            maximum: 50
+                            minimum: -25
+                            type: integer
+                          WmarkRation:
+                            description: wmark_ratio (需要 Anolis OS) 当 cgroup 内存使用量超过
+                              `memory.wmark_high` 时触发异步内存回收， 当使用量低于 `memory.wmark_low`
+                              时停止回收。 基本上，`memory.wmark_high` := min(memory.high, memory.limit_in_bytes)*memory.memory.wmark_ratio
+                              `memory.wmark_low` := min(memory.high, memory.limit_in_bytes)
+                              *(memory.wmark_ratio - memory.wmark_scale_factor) WmarkRatio
+                              指定 `memory.wmark_ratio` 帮助计算 `memory.wmark_high`，当内存使用超过时触发异步内存回收。
+                              关闭：0。推荐：95。
+                            format: int64
+                            maximum: 100
+                            minimum: 0
+                            type: integer
+                          WmarkScalePermill:
+                            description: WmarkScalePermill 指定 `memory.wmark_scale_factor`
+                              帮助计算 `memory.wmark_low`， 当内存使用量低于时停止异步内存回收。 Close:50.
+                              Recommended:20.
+                            format: int64
+                            maximum: 1000
+                            minimum: 1
+                            type: integer
+                        type: object
+                      ResctrlQOS:
+                        properties:
+                          CATRangeEndPercent:
+                            default: 0
+                            description: pod 的 LLC 可用范围结束（百分比）
+                            format: int64
+                            maximum: 100
+                            type: integer
+                          CATRangeStartPercent:
+                            default: 0
+                            description: pod 的 LLC 可用范围起始（百分比）
+                            format: int64
+                            maximum: 100
+                            type: integer
+                          Enable:
+                            description: Enable 表示是否启用 resctrl qos。
+                            type: boolean
+                          MBAPercent:
+                            default: 0
+                            description: MBA 百分率
+                            format: int64
+                            maximum: 100
+                            type: integer
+                        type: object
+                    type: object
+                  SystemClass:
+                    description: SystemClass for system pods.
+                    properties:
+                      CPUQOS:
+                        description: CPUQOSCfg 存储 cpu qos 的 node-level 配置
+                        properties:
+                          Enable:
+                            description: Enable表示cpu qos是否开启。
+                            type: boolean
+                          GroupIdentity:
+                            description: pod 的组标识值，默认值 = 0
+                            format: int64
+                            type: integer
+                        type: object
+                      MemoryQOS:
+                        description: MemoryQOSCfg 存储 memory qos 的 node-level 配置
+                        properties:
+                          Enable:
+                            description: Enable表示是否启用内存qos（默认：false）。 该字段用于 node-level
+                              的控制，而 pod-level 的配置是使用 MemoryQOS 和 `Policy` 而不是 `Enable`
+                              选项完成的。 查看 MemoryQOSCfg 和 PodMemoryQOSConfig 结构体之间的区别
+                            type: boolean
+                          LowLimitPercent:
+                            description: LowLimitPercent 指定计算 `memory.low` 的 lowLimitFactor
+                              百分比， 当内存使用量不超过下限时，它会尽力保护内存免受全局回收， 除非没有未受保护的 memcg 可以回收。
+                              注意：`memory.low` 应该大于`memory.min`。 如果 spec.requests.memory
+                              == spec.limits.memory，pod `memory.low` 和 `memory.high`
+                              变得无效， 而 `memory.wmark_ratio` 仍然有效。 Close:0
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          MinLimitPercent:
+                            description: "memcg qos 如果启用，memcg qos 将由 agent 设置，其中一些字段是从
+                              pod 规范中隐式计算的。 \t1. `memory.min` := spec.requests.memory
+                              minLimitFactor 100（如果未设置 requests.memory 则使用 0） \t2.
+                              `memory.low` := spec.requests.memory lowLimitFactor
+                              100（如果 requests.memory 使用 0未设置） \t3. `memory.limit_in_bytes`
+                              := spec.limits.memory （如果未设置limits.memory，则设置node.allocatable.memory）
+                              \t4. `memory.high` := memory.limit_in_bytes throttlingFactor
+                              100 （使用“ max\" if memory.high <= memory.min) MinLimitPercent
+                              指定 minLimitFactor 百分比来计算`memory.min`， 当内存使用不超过最小限制时，它可以保护内存免受全局回收。
+                              Close:0"
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          OoKillGroup:
+                            format: int64
+                            type: integer
+                          Priority:
+                            format: int64
+                            type: integer
+                          PriorityEnable:
+                            format: int64
+                            type: integer
+                          ThrottlingPercent:
+                            description: ThrottlingPercent 指定 throttlingFactor 百分比来计算
+                              `memory.high` 与 pod memory.limits 或 node 可分配内存， 当内存使用超过时触发
+                              memcg 直接回收。 降低系数带来更重的回收压力。 Close:0
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          WmarkMinAdj:
+                            description: 'wmark_min_adj（需要 Anolis 操作系统） WmarkMinAdj
+                              指定 `memory.wmark_min_adj` 来调整全局内存回收的 per-memcg 阈值。 降低因子带来后期回收。调整对不同的值范围使用不同的公式。
+                              [-25, 0)：global_wmark_min'' = global_wmark_min + (global_wmark_min
+                              - 0) * wmarkMinAdj (0, 50]：global_wmark_min'' = global_wmark_min
+                              + (global_wmark_low - global_wmark_min) * wmarkMinAdj
+                              Close: [LSR:0, LS:0, BE:0]. Recommended: [LSR:-25, LS:-25,
+                              BE:50].'
+                            format: int64
+                            maximum: 50
+                            minimum: -25
+                            type: integer
+                          WmarkRation:
+                            description: wmark_ratio (需要 Anolis OS) 当 cgroup 内存使用量超过
+                              `memory.wmark_high` 时触发异步内存回收， 当使用量低于 `memory.wmark_low`
+                              时停止回收。 基本上，`memory.wmark_high` := min(memory.high, memory.limit_in_bytes)*memory.memory.wmark_ratio
+                              `memory.wmark_low` := min(memory.high, memory.limit_in_bytes)
+                              *(memory.wmark_ratio - memory.wmark_scale_factor) WmarkRatio
+                              指定 `memory.wmark_ratio` 帮助计算 `memory.wmark_high`，当内存使用超过时触发异步内存回收。
+                              关闭：0。推荐：95。
+                            format: int64
+                            maximum: 100
+                            minimum: 0
+                            type: integer
+                          WmarkScalePermill:
+                            description: WmarkScalePermill 指定 `memory.wmark_scale_factor`
+                              帮助计算 `memory.wmark_low`， 当内存使用量低于时停止异步内存回收。 Close:50.
+                              Recommended:20.
+                            format: int64
+                            maximum: 1000
+                            minimum: 1
+                            type: integer
+                        type: object
+                      ResctrlQOS:
+                        properties:
+                          CATRangeEndPercent:
+                            default: 0
+                            description: pod 的 LLC 可用范围结束（百分比）
+                            format: int64
+                            maximum: 100
+                            type: integer
+                          CATRangeStartPercent:
+                            default: 0
+                            description: pod 的 LLC 可用范围起始（百分比）
+                            format: int64
+                            maximum: 100
+                            type: integer
+                          Enable:
+                            description: Enable 表示是否启用 resctrl qos。
+                            type: boolean
+                          MBAPercent:
+                            default: 0
+                            description: MBA 百分率
+                            format: int64
+                            maximum: 100
+                            type: integer
+                        type: object
+                    type: object
+                type: object
+              resourceUsedThresholdWithBE:
+                description: 如果节点资源使用过载，BE pod 将受到限制
+                properties:
+                  CPUEvictBESatisfactionLowerPercent:
+                    description: 如果是 CPU (RealLimit/allocatedLimit < CPUEvictBESatisfactionLowerPercent
+                      并且使用率接近 100%) 继续 CPUEvictTimeWindowSeconds，然后开始 evict
+                    format: int64
+                    type: integer
+                  CPUEvictBESatisfactionUpperPercent:
+                    description: 如果是 CPU RealLimit/allocatedLimit > CPUEvictBESatisfactionUpperPercent，则停止
+                      evict BE pod
+                    format: int64
+                    type: integer
+                  CPUEvictTimeWindowSeconds:
+                    description: cpu evict start after continue avg(cpuusage) > CPUEvictThresholdPercent
+                      in seconds
+                    format: int64
+                    type: integer
+                  cpuSuppressPolicy:
+                    description: CPUSuppressPolicy
+                    type: string
+                  cpuSuppressThresholdPercent:
+                    default: 65
+                    description: cpu suppress threshold percentage (0,100), default
+                      = 65
+                    format: int64
+                    maximum: 100
+                    minimum: 0
+                    type: integer
+                  enable:
+                    default: true
+                    description: whether the strategy is enabled, default = true
+                    type: boolean
+                  memoryEvictLowerPercent:
+                    description: lower：MemoryEvictLowerPercent 下的内存释放 util 使用情况，default
+                      = MemoryEvictThresholdPercent - 2
+                    format: int64
+                    maximum: 100
+                    minimum: 0
+                    type: integer
+                  memoryEvictThresholdPercent:
+                    default: 70
+                    description: upper：内存驱逐阈值百分比（0,100），default= 70
+                    format: int64
+                    maximum: 100
+                    minimum: 0
+                    type: integer
+                type: object
+            type: object
+          status:
+            description: NodeSLOStatus defines the observed state of NodeSLO
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+  {{- end }}

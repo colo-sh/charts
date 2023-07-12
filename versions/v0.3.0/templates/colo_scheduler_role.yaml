@@ -32,6 +32,7 @@ rules:
       - config.colo-sh.com
       - nodeslo.colo-sh.com
       - scheduling.colo-sh.com
+      - coordination.k8s.io
     resources:
       - "*"
     verbs:

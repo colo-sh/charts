@@ -8,7 +8,9 @@ data:
     apiVersion: kubescheduler.config.k8s.io/v1beta2
     kind: KubeSchedulerConfiguration
     leaderElection:
-      leaderElect: false
+      leaderElect: true
+      resourceNamespace: {{ .Values.installation.namespace }}
+      resourceName: colo-scheduler
     profiles:
       - schedulerName: colo-scheduler
         plugins:

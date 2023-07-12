@@ -29,7 +29,10 @@ spec:
             - /workspace/colo-scheduler
             - --port={{ .Values.scheduler.port }}
             - --config=/config/colo-scheduler-config.yaml
+            - --leader-elect-resource-name=colo-scheduler
             - --leader-elect-resource-namespace={{ .Values.installation.namespace }}
+            - --lock-object-name=colo-scheduler
+            - --lock-object-namespace={{ .Values.installation.namespace }}
             - --v={{ .Values.scheduler.log.level }}
           {{- if .Values.imageRepositoryHost }}
           image: {{ .Values.imageRepositoryHost }}/{{ .Values.scheduler.image.repository }}:{{ .Values.scheduler.image.tag }}

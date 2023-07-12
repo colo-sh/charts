@@ -52,6 +52,8 @@ data:
             preBind:
               disabled:
               - name: '*'
+              enabled:
+              - name: Reservation
             bind:
               disabled:
               - name: '*'

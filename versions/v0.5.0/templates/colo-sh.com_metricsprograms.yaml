@@ -1,0 +1,254 @@
+{{- if .Values.crds.managed }}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: metricsprograms.colo-sh.com
+spec:
+  group: colo-sh.com
+  names:
+    kind: MetricsProgram
+    listKind: MetricsProgramList
+    plural: metricsprograms
+    shortNames:
+    - mp
+    singular: metricsprogram
+  scope: Cluster
+  versions:
+    - name: v1
+      schema:
+        openAPIV3Schema:
+          description: MetricsProgram is the Schema for the MetricsProgram
+          properties:
+            apiVersion:
+              description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+              type: string
+            kind:
+              description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+              type: string
+            metadata:
+              type: object
+            spec:
+              properties:
+                bpf_programs:
+                  items:
+                    properties:
+                      cflags:
+                        items:
+                          type: string
+                        type: array
+                      cgroups_table:
+                        type: string
+                      code:
+                        type: string
+                      kaddrs:
+                        items:
+                          type: string
+                        type: array
+                      kernel_version:
+                        type: string
+                      kprobes:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      kretprobes:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      perf_events:
+                        items:
+                          properties:
+                            cpu:
+                              type: integer
+                            group_fd:
+                              type: integer
+                            name:
+                              type: integer
+                            pid:
+                              type: integer
+                            sample_frequency:
+                              type: integer
+                            sample_period:
+                              type: integer
+                            target:
+                              type: string
+                            type:
+                              type: integer
+                          required:
+                            - name
+                            - target
+                            - type
+                          type: object
+                        type: array
+                      raw_tracepoints:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      tracepoints:
+                        additionalProperties:
+                          type: string
+                        type: object
+                    required:
+                      - code
+                    type: object
+                  type: array
+                metrics:
+                  description: Metrics is a collection of metrics attached to a program
+                  properties:
+                    counters:
+                      items:
+                        description: Counter is a metric defining prometheus counter
+                        properties:
+                          help:
+                            type: string
+                          labels:
+                            items:
+                              description: Label defines how to decode an element from
+                                eBPF table key with the list of decoders
+                              properties:
+                                decoders:
+                                  items:
+                                    description: Decoder defines how to decode value
+                                    properties:
+                                      allow_unknown:
+                                        type: boolean
+                                      name:
+                                        type: string
+                                      regexps:
+                                        items:
+                                          type: string
+                                        type: array
+                                      static_map:
+                                        additionalProperties:
+                                          type: string
+                                        type: object
+                                    required:
+                                      - name
+                                    type: object
+                                  type: array
+                                name:
+                                  type: string
+                                reuse:
+                                  type: boolean
+                                size:
+                                  type: integer
+                              required:
+                                - decoders
+                                - name
+                                - size
+                              type: object
+                            type: array
+                          name:
+                            type: string
+                          perf_map:
+                            type: string
+                          perf_map_flush_duration:
+                            description: A Duration represents the elapsed time between
+                              two instants as an int64 nanosecond count. The representation
+                              limits the largest representable duration to approximately
+                              290 years.
+                            format: int64
+                            type: integer
+                          table:
+                            type: string
+                        required:
+                          - help
+                          - labels
+                          - name
+                        type: object
+                      type: array
+                    histograms:
+                      items:
+                        description: Histogram is a metric defining prometheus histogram
+                        properties:
+                          bucket_keys:
+                            items:
+                              type: number
+                            type: array
+                          bucket_max:
+                            type: integer
+                          bucket_min:
+                            type: integer
+                          bucket_multiplier:
+                            type: number
+                          bucket_type:
+                            type: string
+                          help:
+                            type: string
+                          labels:
+                            items:
+                              description: Label defines how to decode an element from
+                                eBPF table key with the list of decoders
+                              properties:
+                                decoders:
+                                  items:
+                                    description: Decoder defines how to decode value
+                                    properties:
+                                      allow_unknown:
+                                        type: boolean
+                                      name:
+                                        type: string
+                                      regexps:
+                                        items:
+                                          type: string
+                                        type: array
+                                      static_map:
+                                        additionalProperties:
+                                          type: string
+                                        type: object
+                                    required:
+                                      - name
+                                    type: object
+                                  type: array
+                                name:
+                                  type: string
+                                reuse:
+                                  type: boolean
+                                size:
+                                  type: integer
+                              required:
+                                - decoders
+                                - name
+                                - size
+                              type: object
+                            type: array
+                          name:
+                            type: string
+                          table:
+                            type: string
+                        required:
+                          - bucket_type
+                          - help
+                          - labels
+                          - name
+                          - table
+                        type: object
+                      type: array
+                  type: object
+                name:
+                  type: string
+                selector:
+                  description: 'Selector restrict bpf program object eg: pods; workloadType;
+                  pods+namespace; workloadType+namespace;'
+                  properties:
+                    namespace:
+                      type: string
+                    pods:
+                      items:
+                        type: string
+                      type: array
+                    workload_type:
+                      type: string
+                  type: object
+              required:
+                - metrics
+                - name
+              type: object
+          type: object
+      served: true
+      storage: true
+  {{- end }}

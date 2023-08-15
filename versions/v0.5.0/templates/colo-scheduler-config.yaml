@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: colo-scheduler-config
+  namespace: {{ .Values.installation.namespace }}
+data:
+  colo-scheduler-config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1beta2
+    kind: KubeSchedulerConfiguration
+    leaderElection:
+      leaderElect: true
+      resourceNamespace: {{ .Values.installation.namespace }}
+      resourceName: colo-scheduler
+    profiles:
+      - schedulerName: colo-scheduler
+        plugins:
+            preFilter:
+              enabled:
+              - name: ColocationFit
+              - name: Reservation
+              - name: NodeNUMAResource
+            filter:
+              enabled:
+              - name: ColocationFit
+              - name: NodeAffinity
+              - name: NodeUnschedulable
+              - name: NodeName
+              - name: Reservation
+              - name: TaintToleration
+              - name: NodePorts
+              - name: LoadAwareScheduling
+              - name: NodeNUMAResource
+              - name: VKubelet
+            score:
+              disabled:
+              - name: '*'
+              enabled:
+              - name: ColocationFit
+                weight: 1
+              - name: Reservation
+                weight: 5000
+              - name: LoadAwareScheduling
+                weight: 1
+              - name: NodeNUMAResource
+                weight: 1
+              - name: VKubelet
+                weight: 1
+            queueSort:
+              disabled:
+              - name: '*'
+              enabled:
+              - name: ColocationFit
+            reserve:
+              disabled:
+              - name: '*'
+              enabled:
+              - name: Reservation
+              - name: LoadAwareScheduling
+              - name: NodeNUMAResource
+              - name: VKubelet
+            preBind:
+              disabled:
+              - name: '*'
+              enabled:
+              - name: Reservation
+              - name: NodeNUMAResource
+            bind:
+              disabled:
+              - name: '*'
+              enabled:
+              - name: Reservation
+              - name: DefaultBinder
+        pluginConfig:
+        - name: NodeNUMAResource
+          args:
+            apiVersion: kubescheduler.config.k8s.io/v1beta2
+            kind: NodeNUMAResourceArgs
+            defaultCPUBindPolicy: FullPCPUs
+            scoringStrategy:
+              Type: LeastAllocated
+              Resources:
+                - Name: cpu
+                  Weight: 1
+        - name: LoadAwareScheduling
+          args:
+            apiVersion: kubescheduler.config.k8s.io/v1beta2
+            kind: LoadAwareSchedulingArgs
+            filterExpiredNodeMetrics: false
+            nodeMetricExpirationSeconds: 300
+            resourceWeights:
+              cpu: 1
+              memory: 1
+            usageThresholds:
+              cpu: 65
+              memory: 95
+            estimatedScalingFactors:
+              cpu: 85
+              memory: 70

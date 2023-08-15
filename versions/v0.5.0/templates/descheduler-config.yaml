@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: descheduler-config
+  namespace: {{ .Values.installation.namespace }}
+data:
+  colo-descheduler-config: |
+    apiVersion: descheduler/v1alpha2
+    kind: DeschedulerConfiguration
+    enableContentionProfiling: true
+    enableProfiling: true
+    healthzBindAddress: 0.0.0.0:10251
+    metricsBindAddress: 0.0.0.0:10251
+    leaderElection:
+      resourceLock: leases
+      resourceName: colo-descheduler
+      resourceNamespace: {{ .Values.installation.namespace }}
+    deschedulingInterval: 10s
+    dryRun: false
+    profiles:
+      - name: colo-descheduler
+        plugins:
+          deschedule:
+            disabled:
+              - name: "*"
+          evict:
+            disabled:
+              - name: "*"
+            enabled:
+              - name: MigrationController
+          balance:
+            enabled:
+              - name: LowNodeLoad
+              - name: LowWorkLoad
+        pluginConfig:
+          - name: MigrationController
+            args:
+              apiVersion: descheduler/v1alpha2
+              kind: MigrationControllerArgs
+              evictionPolicy: Eviction
+              namespaces:
+                exclude:
+                - "kube-system"
+                - "colo-system"
+                - "istio-system"
+                - "adele-system"
+                - "tidb"
+                - "psr"
+                - "snail"
+                - "drangonstone-v2-system"
+                - "turtle"
+                - "lord"
+                - "zeal"
+                - "cmdb"
+                - "observability"
+                - "kafka"
+                - "kingshard"
+                - "chaika"
+                - "tidb-ci"
+                - "tidb-passport"
+                - "tidb-ecom"
+                - "tidb-busbackend"
+                - "tidb-qa"
+                - "tidb-algo"
+                - "zhihu-zetta"
+                - "tidb-operator"
+                - "kubeflow"
+                - "argo"
+                - "tidb-pushlog"
+              evictQPS: "10"
+              evictBurst: 1
+              evictLocalStoragePods: true
+              maxMigratingPerWorkload: 1
+              maxMigratingPerNamespace: 5
+              maxMigratingPerNode: 5
+          - name: LowNodeLoad
+            args:
+              apiVersion: descheduler/v1alpha2
+              kind: LowNodeLoadArgs
+              evictableNamespaces:
+                exclude:
+                - "kube-system"
+                - "colo-system"
+                - "istio-system"
+                - "adele-system"
+                - "tidb"
+                - "psr"
+                - "snail"
+                - "drangonstone-v2-system"
+                - "turtle"
+                - "lord"
+                - "zeal"
+                - "cmdb"
+                - "observability"
+                - "kafka"
+                - "kingshard"
+                - "chaika"
+                - "tidb-ci"
+                - "tidb-passport"
+                - "tidb-ecom"
+                - "tidb-busbackend"
+                - "tidb-qa"
+                - "tidb-algo"
+                - "zhihu-zetta"
+                - "tidb-operator"
+                - "kubeflow"
+                - "argo"
+                - "tidb-pushlog"
+              lowThresholds:
+                cpu: 30
+                memory: 30
+              highThresholds:
+                cpu: 80
+                memory: 85

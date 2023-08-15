@@ -1,0 +1,127 @@
+# Default values for colo.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+crds:
+  managed: true
+
+installation:
+  namespace: colo-system
+
+imageRepositoryHost: "hub.kce.ksyun.com"
+
+imagePullSecrets: []
+
+cololet:
+  image:
+    repository: colo/cololet
+    tag: v0.5.0
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1G
+    requests:
+      cpu: "1"
+      memory: 1G
+  log:
+    # log level for cololet
+    level: "4"
+
+service:
+  cololet:
+    type: ClusterIP
+    port: 9435
+  manager:
+    port: 8443
+
+scheduler:
+  # settings for log print
+  log:
+    # log level for colo-scheduler
+    level: "4"
+
+  replicas: 3
+  image:
+    repository: colo/colo-scheduler
+    tag: v0.5.0-2
+  port: 10251
+
+  # resources of koord-scheduler container
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 256Mi
+
+  hostNetwork: false
+
+  nodeSelector: {}
+  tolerations: []
+
+manager:
+  # settings for log print
+  log:
+    # log level for colo-manager
+    level: "4"
+
+  replicas: 2
+  image:
+    repository: colo/colo-manager
+    tag: v0.5.0
+
+  # resources of colo-manager container
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 256Mi
+
+  nodeSelector: {}
+  tolerations: []
+
+webhook:
+  replicas: 2
+  image:
+    repository: colo/colo-pod-webhook-server
+    tag: v0.1.0
+
+  # resources of colo-manager container
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 256Mi
+
+descheduler:
+  replicas: 1
+  image:
+    repository: colo/colo-descheduler
+    tag: v0.5.0-2
+
+  # resources of colo-manager container
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 256Mi
+
+nameOverride: ""
+fullnameOverride: ""
+
+webhookConfiguration:
+  failurePolicy:
+    pods: Ignore
+  timeoutSeconds: 30
+
+serviceAccount:
+  annotations: {}
+
+
+

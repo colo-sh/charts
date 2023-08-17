@@ -45,7 +45,7 @@ spec:
               path: /healthz
               port: 10259
               scheme: HTTPS
-            initialDelaySeconds: 15
+            initialDelaySeconds: 60
           name: colo-scheduler
           readinessProbe:
             httpGet:

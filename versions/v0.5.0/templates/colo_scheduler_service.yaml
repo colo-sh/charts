@@ -1,0 +1,17 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: colo-scheduler-svc
+  namespace: {{ .Values.installation.namespace }}
+  labels:
+    component: colo-scheduler
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 10251
+      targetPort: 10251
+  selector:
+    component: colo-scheduler
+  type: ClusterIP
+  sessionAffinity: None

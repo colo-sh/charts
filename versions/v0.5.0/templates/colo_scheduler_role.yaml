@@ -34,6 +34,7 @@ rules:
       - scheduling.colo-sh.com
       - coordination.k8s.io
       - topology.node.k8s.io
+      - vkubelet.colo-sh.com
     resources:
       - "*"
     verbs:

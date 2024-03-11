@@ -26,6 +26,8 @@ spec:
       serviceAccount: cololet
       nodeSelector:
         colocation: "on"
+      tolerations:
+        - operator: Exists
       containers:
         - command:
             - cololet

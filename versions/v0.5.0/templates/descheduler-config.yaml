@@ -4,7 +4,7 @@ metadata:
   name: descheduler-config
   namespace: {{ .Values.installation.namespace }}
 data:
-  colo-descheduler-config: |
+  colo-descheduler-config: |-
     apiVersion: descheduler/v1alpha2
     kind: DeschedulerConfiguration
     enableContentionProfiling: true
@@ -43,6 +43,8 @@ data:
                 - "kube-system"
                 - "colo-system"
                 - "istio-system"
+                - "content-core"
+                - "member"
                 - "adele-system"
                 - "tidb"
                 - "psr"
@@ -55,6 +57,8 @@ data:
                 - "observability"
                 - "kafka"
                 - "kingshard"
+                - "dove"
+                - "feed-root"
                 - "chaika"
                 - "tidb-ci"
                 - "tidb-passport"
@@ -66,6 +70,7 @@ data:
                 - "tidb-operator"
                 - "kubeflow"
                 - "argo"
+                - "zvideo"
                 - "tidb-pushlog"
               evictQPS: "10"
               evictBurst: 1
@@ -82,6 +87,8 @@ data:
                 - "kube-system"
                 - "colo-system"
                 - "istio-system"
+                - "content-core"
+                - "member"
                 - "adele-system"
                 - "tidb"
                 - "psr"
@@ -94,6 +101,8 @@ data:
                 - "observability"
                 - "kafka"
                 - "kingshard"
+                - "dove"
+                - "feed-root"
                 - "chaika"
                 - "tidb-ci"
                 - "tidb-passport"
@@ -105,10 +114,11 @@ data:
                 - "tidb-operator"
                 - "kubeflow"
                 - "argo"
+                - "zvideo"
                 - "tidb-pushlog"
               lowThresholds:
-                cpu: 30
-                memory: 30
+                cpu: 40
+                memory: 40
               highThresholds:
                 cpu: 80
-                memory: 85
+                memory: 80

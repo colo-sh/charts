@@ -4,7 +4,7 @@ metadata:
   name: colo-scheduler-config
   namespace: {{ .Values.installation.namespace }}
 data:
-  colo-scheduler-config.yaml: |
+  colo-scheduler-config.yaml: |-
     apiVersion: kubescheduler.config.k8s.io/v1beta2
     kind: KubeSchedulerConfiguration
     leaderElection:
@@ -92,7 +92,7 @@ data:
               memory: 1
             usageThresholds:
               cpu: 65
-              memory: 95
+              memory: 80
             estimatedScalingFactors:
               cpu: 85
               memory: 70
